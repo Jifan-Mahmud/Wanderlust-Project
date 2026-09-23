@@ -37,11 +37,55 @@ async function run() {
     })
 
     app.get("/destinations/:id", async (req, res) => {
-      const {id} = req.params;
-      const query = { _id: new ObjectId(id) };
-      const result = await destinationsCollection.findOne(query);
-      res.send(result);
-    })
+      try {
+        const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ error: "Invalid destination ID format" });
+        }
+        const query = { _id: new ObjectId(id) };
+        const result = await destinationsCollection.findOne(query);
+        if (!result) {
+          return res.status(404).json({ error: "Destination not found" });
+        }
+        res.json(result);
+      } catch (err) {
+        res.status(500).json({ error: "Server error fetching destination" });
+      }
+    });
+
+    app.patch("/destinations/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ error: "Invalid destination ID format" });
+        }
+        const updatedDestination = { ...req.body };
+        delete updatedDestination._id;
+        
+        const query = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: updatedDestination,
+        };
+        const result = await destinationsCollection.updateOne(query, updateDoc);
+        res.json({ success: true, message: "Destination updated successfully", result });
+      } catch (err) {
+        res.status(500).json({ error: "Server error updating destination" });
+      }
+    });
+
+    app.delete("/destinations/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ error: "Invalid destination ID format" });
+        }
+        const query = { _id: new ObjectId(id) };
+        const result = await destinationsCollection.deleteOne(query);
+        res.json({ success: true, message: "Destination deleted successfully", result });
+      } catch (err) {
+        res.status(500).json({ error: "Server error deleting destination" });
+      }
+    });
 
     app.post("/destinations", async (req, res) => {
       const newDestination = req.body;
