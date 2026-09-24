@@ -27,6 +27,7 @@ async function run() {
     
     const db = client.db("wonderlust");
     const destinationsCollection = db.collection("destinations");
+    const bookingsCollection = db.collection("bookings");
 
 
 
@@ -91,6 +92,26 @@ async function run() {
       const newDestination = req.body;
       console.log(newDestination);
       const result = await destinationsCollection.insertOne(newDestination);
+      res.send(result);
+    });
+
+    app.post("/bookings", async (req, res) => {
+      const newBooking = req.body;
+      const result = await bookingsCollection.insertOne(newBooking);
+      res.send(result);
+    });
+
+    app.get("/bookings/:userId", async (req, res) => {
+      const { userId} = req.params;
+      const query = { userId: userId };
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.delete("/bookings/:bookingId", async (req, res) => {
+      const { bookingId } = req.params;
+      const query = { _id: new ObjectId(bookingId) };
+      const result = await bookingsCollection.deleteOne(query);
       res.send(result);
     });
     
